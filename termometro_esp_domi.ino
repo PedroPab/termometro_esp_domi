@@ -69,7 +69,7 @@ void setup() {
   lcd.print(pedirHora());
 
   lcd.setCursor(0, 0);
-  lcd.print("C*: ");
+  lcd.print("C: ");
 
 
 }
@@ -120,12 +120,12 @@ void escribirTemperatura() {
     lcd.setCursor(0, 4);
     temperatura = thermocouple.readCelsius();//variable que queremos mandar    lcd.setCursor(0, 5);
     lcd.print(temperatura);
-    lcd.print(" +");
+    lcd.print("+");
   } else if (temperatura < thermocouple.readCelsius()) {
     lcd.setCursor(0, 4);
     temperatura = thermocouple.readCelsius();//variable que queremos mandar    lcd.setCursor(0, 5);
     lcd.print(temperatura);
-    lcd.print(" -");
+    lcd.print("-");
   }
 
 }
