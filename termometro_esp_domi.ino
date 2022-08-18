@@ -192,7 +192,7 @@ void escribirTemperatura() {
     lcd.write(byte(1));
 
   } else if (temperatura < thermocouple.readCelsius()) {
-    lcd.setCursor(1, 0);
+    lcd.setCursor(2, 0);
     temperatura = thermocouple.readCelsius();//variable que queremos mandar    lcd.setCursor(0, 5);
     lcd.print(temperatura);
     lcd.print(" ");
