@@ -111,7 +111,7 @@ void setup() {
       Serial.println("Wifi not conectado");
       lcd.clear();
       lcd.setCursor(0, 1);
-      lcd.print("Wifi no conectado")
+      lcd.print("Wifi no conectado");
       sinInternet();
     }
   }
@@ -280,5 +280,5 @@ void sinInternet() {
 
   delay(1000);
 
-  sinInternet()
+  sinInternet();
 }
