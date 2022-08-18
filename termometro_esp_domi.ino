@@ -107,6 +107,13 @@ void setup() {
     delay(500);
     Serial.print(".");
     lcd.print(".");
+    if (millis() > 60000) {
+      Serial.println("Wifi not conectado");
+      lcd.clear();
+      lcd.setCursor(0, 1);
+      lcd.print("Wifi no conectado")
+      sinInternet();
+    }
   }
 
   Serial.println("Wifi conectado");
@@ -122,7 +129,7 @@ void setup() {
 }
 
 void loop() {
-  
+
   lcd.setCursor(0, 0);
   switch (contador_inicio) {
     case 0:
@@ -264,4 +271,14 @@ void alerta() {
     digitalWrite(zum, LOW);
 
   }
+}
+
+void sinInternet() {
+
+  escribirTemperatura();
+  alerta();
+
+  delay(1000);
+
+  sinInternet()
 }
