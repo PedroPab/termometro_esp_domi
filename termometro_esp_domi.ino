@@ -29,8 +29,55 @@ String hora;
 
 String payload ;// varible de la hora
 
-unsigned long int  timpo_de_inicio = 1;
+unsigned long int  timpo_de_inicio = 0;
+int contador_inicio = 0;
 
+byte flecha_arriba[8] = {
+  B00100,
+  B01110,
+  B11111,
+  B00100,
+  B00100,
+  B00100,
+  B00100,
+};
+
+byte flecha_abajo[8] = {
+  B00100,
+  B00100,
+  B00100,
+  B00100,
+  B11111,
+  B01110,
+  B00100,
+};
+byte punto_inicial[8] = {
+  B11111,
+  B10001,
+  B10001,
+  B10001,
+  B10001,
+  B10001,
+  B11111,
+};
+byte punto_intermidio[8] = {
+  B00000,
+  B01110,
+  B01010,
+  B01010,
+  B01010,
+  B01110,
+  B00000,
+};
+byte punto_final[8] = {
+  B00000,
+  B00000,
+  B00100,
+  B00100,
+  B00100,
+  B00000,
+  B00000,
+};
 void setup() {
   pinMode(zum, OUTPUT);//zumbador
 
@@ -45,17 +92,16 @@ void setup() {
   lcd.setCursor(0, 0);
   lcd.print("saludos humanos");
 
-  //init variable Api
-  rest.variable("temperatura", &temperatura);
-  rest.variable("hora", &hora);
-
-  //name id
-  rest.set_id("2");
-  rest.set_name("termometroFreidoraDomi");
+  lcd.createChar(0, flecha_abajo);
+  lcd.createChar(1, flecha_arriba);
+  lcd.createChar(2, punto_inicial);
+  lcd.createChar(3, punto_intermidio);
+  lcd.createChar(4, punto_final);
 
   //connecten to wifi
   WiFi.begin(ssid, password);
 
+  lcd.setCursor(0, 1);
   while (WiFi.status() != WL_CONNECTED)
   {
     delay(500);
@@ -64,20 +110,42 @@ void setup() {
   }
 
   Serial.println("Wifi conectado");
+  lcd.clear();
 
-  lcd.setCursor(0, 11);
+  lcd.setCursor(11, 0);
   lcd.print(pedirHora());
 
   lcd.setCursor(0, 0);
-  lcd.print("C: ");
+  lcd.print(" ");
 
 
 }
 
 void loop() {
+  
+  lcd.setCursor(0, 0);
+  switch (contador_inicio) {
+    case 0:
+      lcd.print(" ");
+      contador_inicio ++;
+      break;
+    case 1:
+      lcd.write(byte(2));
+      contador_inicio ++;
+      break;
+    case 2:
+      lcd.write(byte(3));
+      contador_inicio ++;
+      break;
+
+    case 3:
+      lcd.write(byte(4));
+      contador_inicio = 0;
+      break;
+  }
 
   if (millis() > 60000 * timpo_de_inicio) {//pedimos la hora cada 60 segundos
-    lcd.setCursor(0, 11);
+    lcd.setCursor(11, 0);
     lcd.print(pedirHora());
     timpo_de_inicio = timpo_de_inicio + 1;
     escribirMensage();
@@ -117,15 +185,19 @@ String pedirHora() {
 void escribirTemperatura() {
 
   if (temperatura > thermocouple.readCelsius()) {
-    lcd.setCursor(0, 4);
+    lcd.setCursor(2, 0);
     temperatura = thermocouple.readCelsius();//variable que queremos mandar    lcd.setCursor(0, 5);
     lcd.print(temperatura);
-    lcd.print("+");
+    lcd.print(" ");
+    lcd.write(byte(1));
+
   } else if (temperatura < thermocouple.readCelsius()) {
-    lcd.setCursor(0, 4);
+    lcd.setCursor(1, 0);
     temperatura = thermocouple.readCelsius();//variable que queremos mandar    lcd.setCursor(0, 5);
     lcd.print(temperatura);
-    lcd.print("-");
+    lcd.print(" ");
+    lcd.write(byte(1));
+
   }
 
 }
@@ -167,7 +239,7 @@ void escribirMensage() {
       // file found at server
       if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY) {
         String payload = http.getString();
-        lcd.setCursor(1, 0);
+        lcd.setCursor(0, 1);
         lcd.print(payload);
       }
     } else {
@@ -184,9 +256,12 @@ void escribirMensage() {
 void alerta() {
   if (temperatura > 164 && temperatura < 174) {
     digitalWrite(zum, LOW);
-    delay(60);
+    delay(80);
     digitalWrite(zum, HIGH);
   } else if (temperatura > 174 ) {
     digitalWrite(zum, HIGH);
+  } else {
+    digitalWrite(zum, LOW);
+
   }
 }
