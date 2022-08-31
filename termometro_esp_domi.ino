@@ -26,10 +26,14 @@ int zum = D1;//zumbador
 
 float temperatura = 0; //temperatura
 String hora;
+String message = "";
 
 String payload ;// varible de la hora
 
 unsigned long int  timpo_de_inicio = 0;
+unsigned long int timpo_de_inicio_message = 0;
+unsigned long int timpo_de_inicio_letras = 0;
+unsigned long int  contador_letras = 0;
 int contador_inicio = 0;
 
 byte flecha_arriba[8] = {
@@ -151,13 +155,14 @@ void loop() {
       break;
   }
 
-  if (millis() > 60000 * timpo_de_inicio) {//pedimos la hora cada 60 segundos
+  if (millis() > 30000 * timpo_de_inicio) {//pedimos la hora cada 30 segundos
     lcd.setCursor(11, 0);
     lcd.print(pedirHora());
     timpo_de_inicio = timpo_de_inicio + 1;
-    escribirMensage();
+
 
   }
+  escribirMensage();
   escribirTemperatura();
   alerta();
   mandarTemperatura();
@@ -234,29 +239,50 @@ void mandarTemperatura() {
 }
 
 void escribirMensage() {
-  if (http.begin(client, "http://iot-domiburguer.herokuapp.com/api/messageApp")) {  // HTTP
+  if (millis() > 20000 * timpo_de_inicio_message && message == "") {//pedimos el mensage cada 20 segundos
+    timpo_de_inicio_message = timpo_de_inicio_message + 1;
 
-    int httpCode = http.GET();
+    if (http.begin(client, "http://iot-domiburguer.herokuapp.com/api/messageApp")) {  // HTTP
 
-    // httpCode will be negative on error
-    if (httpCode > 0) {
-      // HTTP header has been send and Server response header has been handled
-      Serial.printf("[HTTP] GET... code: %d\n", httpCode);
+      int httpCode = http.GET();
 
-      // file found at server
-      if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY) {
-        String payload = http.getString();
-        lcd.setCursor(0, 1);
-        lcd.print(payload);
+      // httpCode will be negative on error
+      if (httpCode > 0) {
+        // HTTP header has been send and Server response header has been handled
+        Serial.printf("[HTTP] GET... code: %d\n", httpCode);
+
+        // file found at server
+        if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY) {
+          String payload = http.getString();
+          lcd.setCursor(0, 1);
+          lcd.print(payload);
+          message = payload;
+        }
+      } else {
+        Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
       }
+
+      http.end();
     } else {
-      Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
+      Serial.printf("[HTTP} Unable to connect\n");
     }
 
-    http.end();
   } else {
-    Serial.printf("[HTTP} Unable to connect\n");
+    if (message.length() > 16) {
+      if (millis() > 400 * timpo_de_inicio_letras) {
+        timpo_de_inicio_letras = timpo_de_inicio_letras + 1;
+        message.substring(contador_letras,  message.length() - 1);
+        lcd.setCursor(0, 1);
+        lcd.print(message);
+      }
+
+    } else {
+      lcd.setCursor(0, 1);
+      lcd.print(message);
+    }
   }
+
+
 
 }
 
