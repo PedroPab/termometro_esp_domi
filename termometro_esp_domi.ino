@@ -35,6 +35,7 @@ unsigned long int timpo_de_inicio_message = 0;
 unsigned long int timpo_de_inicio_letras = 0;
 unsigned long int  contador_letras = 0;
 int contador_inicio = 0;
+boolean ya = true;
 
 byte flecha_arriba[8] = {
   B00100,
@@ -239,7 +240,7 @@ void mandarTemperatura() {
 }
 
 void escribirMensage() {
-  if (millis() > 20000 * timpo_de_inicio_message && message == "") {//pedimos el mensage cada 20 segundos
+  if (millis() > 20000 * timpo_de_inicio_message && ya) {//pedimos el mensage cada 20 segundos
     timpo_de_inicio_message = timpo_de_inicio_message + 1;
 
     if (http.begin(client, "http://iot-domiburguer.herokuapp.com/api/messageApp")) {  // HTTP
@@ -254,9 +255,10 @@ void escribirMensage() {
         // file found at server
         if (httpCode == HTTP_CODE_OK || httpCode == HTTP_CODE_MOVED_PERMANENTLY) {
           String payload = http.getString();
-          lcd.setCursor(0, 1);
-          lcd.print(payload);
           message = payload;
+          ya = false;
+
+
         }
       } else {
         Serial.printf("[HTTP] GET... failed, error: %s\n", http.errorToString(httpCode).c_str());
@@ -271,14 +273,18 @@ void escribirMensage() {
     if (message.length() > 16) {
       if (millis() > 400 * timpo_de_inicio_letras) {
         timpo_de_inicio_letras = timpo_de_inicio_letras + 1;
-        message.substring(contador_letras,  message.length() - 1);
+        message = message.substring(contador_letras,  message.length() - 1);
         lcd.setCursor(0, 1);
         lcd.print(message);
+        if (message.length() <= 16) {
+          ya = true;
+        }
       }
 
     } else {
       lcd.setCursor(0, 1);
       lcd.print(message);
+      ya = true;
     }
   }
 
